@@ -1,9 +1,10 @@
 import itertools
-
 import numpy as np
 
 WIDTH = 336  # mm
-TOLERANCE = 2  # mm
+WIDTH_TOLERANCE = 2  # mm
+MAX_PARAM_TOLERANCE = 10
+PATH_TO_COLLECTION = "./template.csv"
 
 
 def csv2dict(path):
@@ -15,11 +16,11 @@ def csv2dict(path):
                 skip_first = False
                 continue
             item = line.split(";")
-            bg_dict[item[0]] = [float(item[1].replace(",", ".")), int(item[2])]
-    return find_relative_weight(bg_dict)
+            bg_dict[item[0]] = [float(item[1]), int(item[2])]
+    return find_relative_param(bg_dict)
 
 
-def find_relative_weight(bg_dict):
+def find_relative_param(bg_dict):
     bg_list = sorted(bg_dict.items(), key=lambda x: x[1][0])
     i = 0
     for element in bg_list:
@@ -28,7 +29,7 @@ def find_relative_weight(bg_dict):
     return bg_dict
 
 
-def sort_collection_by_weight(collection, bg_dict):
+def sort_collection_by_param(collection, bg_dict):
     return sorted(collection, key=lambda x: bg_dict[x][0], reverse=True)
 
 
@@ -44,39 +45,38 @@ def create_first_cube(collection, bg_dict):
     return cube
 
 
-def sort_first_cube(cube, collection, bg_dict):
+def sort_first_cube(cube, collection, bg_dict, param_tolerance):
     missing_length = WIDTH - sum([bg_dict[game][1] for game in cube])
-    if missing_length <= TOLERANCE:
+    if missing_length <= WIDTH_TOLERANCE:
         return cube
 
     for nb_rm_game in range(0, len(cube)):
         current_cube_comb = itertools.combinations(cube, len(cube) - nb_rm_game)
         for current_cube in current_cube_comb:
             missing_length = WIDTH - sum([bg_dict[game][1] for game in current_cube])
-            for nb_game_to_switch in range(1, 5):
+            for nb_game_to_switch in range(1, 20):
                 flag = True
-                for comb in itertools.combinations(collection[:9], nb_game_to_switch):
+                for comb in itertools.combinations(collection[:param_tolerance], nb_game_to_switch):
                     length = np.sum([bg_dict[game][1] for game in comb])
                     if length < missing_length and flag:
                         flag = False
-                    if 0 < missing_length - length <= TOLERANCE:
+                    if 0 < missing_length - length <= WIDTH_TOLERANCE:
                         current_cube = np.array(current_cube)
                         return np.append(current_cube, comb)
                 if flag:
                     break
-    print("No combination found")
     return None
 
 
-def sort_cubes(bg_dict):
+def sort_cubes(bg_dict, param_tolerance):
     sorted_cubes = []
     collection = bg_dict.keys()
 
     while len(collection) != 0:
-        collection = sort_collection_by_weight(collection, bg_dict)
+        collection = sort_collection_by_param(collection, bg_dict)
         cube = create_first_cube(collection, bg_dict)
         if len(collection) != len(cube):
-            sorted_cube = sort_first_cube(cube, collection[len(cube):], bg_dict)
+            sorted_cube = sort_first_cube(cube, collection[len(cube):], bg_dict, param_tolerance)
         else:
             sorted_cube = cube
         if sorted_cube is None:
@@ -100,19 +100,34 @@ def find_missing_games(sorted_cubes, bg_dict):
     return missing_games
 
 
+def sort_cubes_auto_param(bg_dict):
+    best_param_tolerance = {"value": 0, "sorted_cubes": [], "missing_games": []}
+    for i in range(MAX_PARAM_TOLERANCE):
+        sorted_cubes = sort_cubes(bg_dict, i)
+        missing_games = find_missing_games(sorted_cubes, bg_dict)
+        if len(missing_games) == 0:
+            break
+        elif len(best_param_tolerance["missing_games"]) > len(missing_games) or len(best_param_tolerance["missing_games"]) == 0:
+            best_param_tolerance["value"] = i
+            best_param_tolerance["sorted_cubes"] = sorted_cubes
+            best_param_tolerance["missing_games"] = missing_games
+    return best_param_tolerance["value"], best_param_tolerance["sorted_cubes"], best_param_tolerance["missing_games"]
+
+
+def write_result(param_tolerance, sorted_cubes, missing_games):
+    with open("result.txt", "w") as f:
+        f.write("Total number of games: " + str(len(sorted_cubes) + len(missing_games)))
+        f.write("\nSorted cubes with a param tolerance of: " + str(param_tolerance))
+        for s in sorted_cubes:
+            f.write("\n" + str(list(s)))
+        f.write("\n\nMissing Games\n")
+        f.write(str(missing_games))
+
+
 def main():
-    bg_dict = csv2dict("collection.csv")
-    sorted_cubes = sort_cubes(bg_dict)
+    bg_dict = csv2dict(PATH_TO_COLLECTION)
+    param_tolerance, sorted_cubes, missing_games = sort_cubes_auto_param(bg_dict)
+    write_result(param_tolerance, sorted_cubes, missing_games)
 
-    print("Total number of games: ", sum([len(cube) for cube in sorted_cubes]))
-    print("Sorted cubes")
-    for s in sorted_cubes:
-        print(list(s))
-
-
-    print()
-    print("Missing Games")
-    missing_games = find_missing_games(sorted_cubes, bg_dict)
-    print(missing_games)
 
 main()
