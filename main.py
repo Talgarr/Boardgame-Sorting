@@ -3,8 +3,8 @@ import numpy as np
 
 WIDTH = 336  # mm
 WIDTH_TOLERANCE = 2  # mm
-MAX_PARAM_TOLERANCE = 10
-PATH_TO_COLLECTION = "./template.csv"
+MAX_PARAM_TOLERANCE = 15
+PATH_TO_COLLECTION = "collection_mod.csv"
 
 
 def csv2dict(path):
@@ -105,12 +105,12 @@ def sort_cubes_auto_param(bg_dict):
     for i in range(MAX_PARAM_TOLERANCE):
         sorted_cubes = sort_cubes(bg_dict, i)
         missing_games = find_missing_games(sorted_cubes, bg_dict)
-        if len(missing_games) == 0:
-            break
-        elif len(best_param_tolerance["missing_games"]) > len(missing_games) or len(best_param_tolerance["missing_games"]) == 0:
+        if len(best_param_tolerance["missing_games"]) > len(missing_games) or len(best_param_tolerance["missing_games"]) == 0:
             best_param_tolerance["value"] = i
             best_param_tolerance["sorted_cubes"] = sorted_cubes
             best_param_tolerance["missing_games"] = missing_games
+            if len(missing_games) == 0:
+                break
     return best_param_tolerance["value"], best_param_tolerance["sorted_cubes"], best_param_tolerance["missing_games"]
 
 
