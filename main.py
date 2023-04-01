@@ -4,7 +4,7 @@ import numpy as np
 WIDTH = 336  # mm
 WIDTH_TOLERANCE = 2  # mm
 MAX_PARAM_TOLERANCE = 15
-PATH_TO_COLLECTION = "collection_mod.csv"
+PATH_TO_COLLECTION = "mod_collection.csv"
 
 
 def csv2dict(path):
