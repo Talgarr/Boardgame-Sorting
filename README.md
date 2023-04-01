@@ -18,3 +18,19 @@ The intended use was to sort a boardgame collection vertically in a IKEA Kallax 
 &emsp;&emsp;d. PATH_TO_COLLECTION: Path to your *.csv* file.
   
  3. Run and enjoy! The program output the result in *result.txt*.
+
+## BoardGameGeek
+I also included a way to transfer your BGG collection directly to this software format. You'll need to add the length to your comments or private comments.
+
+1. Download collection from BGG, select "all".
+
+2. Change the parameters of *bgg2collection.py*:
+
+&emsp;&emsp;a. PARAM: The evaluated parameter column in bgg.
+
+&emsp;&emsp;a. LENGTH_COLUMN: *comment* or *privatecomment*
+
+&emsp;&emsp;a. LENGTH_NAME: What you used to mark the length in bgg.
+
+&emsp;&emsp;a. path: Path to the collection downloaded from bgg.
+
