@@ -2,7 +2,8 @@ import itertools
 import numpy as np
 
 WIDTH = 336  # mm
-WIDTH_TOLERANCE = 2  # mm
+WIDTH_TOLERANCE_MIN = 2 # mm
+WIDTH_TOLERANCE_MAX = 3  # mm
 MAX_PARAM_TOLERANCE = 15
 PATH_TO_COLLECTION = "mod_collection.csv"
 
@@ -16,7 +17,7 @@ def csv2dict(path):
                 skip_first = False
                 continue
             item = line.split(";")
-            bg_dict[item[0]] = [float(item[1]), int(item[2])]
+            bg_dict[item[0]] = [float(item[1]), float(item[2])]
     return find_relative_param(bg_dict)
 
 
@@ -47,7 +48,7 @@ def create_first_cube(collection, bg_dict):
 
 def sort_first_cube(cube, collection, bg_dict, param_tolerance):
     missing_length = WIDTH - sum([bg_dict[game][1] for game in cube])
-    if missing_length <= WIDTH_TOLERANCE:
+    if WIDTH_TOLERANCE_MIN <= missing_length <= WIDTH_TOLERANCE_MAX:
         return cube
 
     for nb_rm_game in range(0, len(cube)):
@@ -60,7 +61,7 @@ def sort_first_cube(cube, collection, bg_dict, param_tolerance):
                     length = np.sum([bg_dict[game][1] for game in comb])
                     if length < missing_length and flag:
                         flag = False
-                    if 0 < missing_length - length <= WIDTH_TOLERANCE:
+                    if WIDTH_TOLERANCE_MIN <= missing_length - length <= WIDTH_TOLERANCE_MAX:
                         current_cube = np.array(current_cube)
                         return np.append(current_cube, comb)
                 if flag:
@@ -131,3 +132,4 @@ def main():
 
 
 main()
+
