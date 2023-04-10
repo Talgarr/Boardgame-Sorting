@@ -115,9 +115,9 @@ def sort_cubes_auto_param(bg_dict):
     return best_param_tolerance["value"], best_param_tolerance["sorted_cubes"], best_param_tolerance["missing_games"]
 
 
-def write_result(param_tolerance, sorted_cubes, missing_games):
+def write_result(param_tolerance, sorted_cubes, missing_games, nb_games):
     with open("result.txt", "w") as f:
-        f.write("Total number of games: " + str(len(sorted_cubes) + len(missing_games)))
+        f.write("Total number of games: " + str(nb_games))
         f.write("\nSorted cubes with a param tolerance of: " + str(param_tolerance))
         for s in sorted_cubes:
             f.write("\n" + str(list(s)))
@@ -128,8 +128,7 @@ def write_result(param_tolerance, sorted_cubes, missing_games):
 def main():
     bg_dict = csv2dict(PATH_TO_COLLECTION)
     param_tolerance, sorted_cubes, missing_games = sort_cubes_auto_param(bg_dict)
-    write_result(param_tolerance, sorted_cubes, missing_games)
-
+    write_result(param_tolerance, sorted_cubes, missing_games, len(bg_dict.keys()))
 
 main()
 
