@@ -2,8 +2,8 @@ import itertools
 import numpy as np
 
 WIDTH = 336  # mm
-WIDTH_TOLERANCE_MIN = 2 # mm
-WIDTH_TOLERANCE_MAX = 3  # mm
+WIDTH_TOLERANCE_MIN = 3 # mm
+WIDTH_TOLERANCE_MAX = 4  # mm
 MAX_PARAM_TOLERANCE = 15
 PATH_TO_COLLECTION = "mod_collection.csv"
 
