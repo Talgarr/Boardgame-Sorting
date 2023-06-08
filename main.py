@@ -16,8 +16,9 @@ def csv2dict(path):
             if skip_first:
                 skip_first = False
                 continue
-            item = line.split(";")
-            bg_dict[item[0]] = [float(item[1]), float(item[2])]
+            if not line.startswith('~'):
+                item = line.split(";")
+                bg_dict[item[0]] = [float(item[1]), float(item[2])]
     return find_relative_param(bg_dict)
 
 
