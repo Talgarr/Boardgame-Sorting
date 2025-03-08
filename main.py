@@ -1,5 +1,6 @@
 import itertools
 import numpy as np
+import pandas as pd
 
 WIDTH = 336  # mm
 WIDTH_TOLERANCE_MIN = 3 # mm
@@ -9,17 +10,20 @@ PATH_TO_COLLECTION = "mod_collection.csv"
 
 
 def csv2dict(path):
-    bg_dict = {}
-    with open(path, "r") as f:
-        skip_first = True
-        for line in f.readlines():
-            if skip_first:
-                skip_first = False
-                continue
-            if not line.startswith('~'):
-                item = line.split(";")
-                bg_dict[item[0]] = [float(item[1]), float(item[2])]
-    return find_relative_param(bg_dict)
+    bg_dict = pd.read_csv(path, sep=";")
+    # Group by 'category'
+    grouped = bg_dict.groupby('category')
+    result_dict = {}
+    # Iterate over each group
+    for category, group in grouped:
+        # Initialize the nested dictionary for the current category
+        category_dict = {}
+        for index, row in group.iterrows():
+            # Create the nested dictionary with 'objectname' as key and [avgweight, length] as value
+            category_dict[row['objectname']] = [row['avgweight'], row['length']]
+        # Add the nested dictionary to the result dictionary
+        result_dict[category] = find_relative_param(category_dict)
+    return result_dict
 
 
 def find_relative_param(bg_dict):
@@ -116,20 +120,25 @@ def sort_cubes_auto_param(bg_dict):
     return best_param_tolerance["value"], best_param_tolerance["sorted_cubes"], best_param_tolerance["missing_games"]
 
 
-def write_result(param_tolerance, sorted_cubes, missing_games, nb_games):
-    with open("result.txt", "w") as f:
+def write_result(param_tolerance, sorted_cubes, missing_games, nb_games, file_name, category):
+    with open(file_name, "a") as f:
+        f.write("Category: " + category + "\n")
         f.write("Total number of games: " + str(nb_games))
         f.write("\nSorted cubes with a param tolerance of: " + str(param_tolerance))
         for s in sorted_cubes:
-            f.write("\n" + str(list(s)))
+            f.write("\n" + str(s).replace("\n", ""))
         f.write("\n\nMissing Games\n")
         f.write(str(missing_games))
+        f.write("\n\n")
 
 
 def main():
     bg_dict = csv2dict(PATH_TO_COLLECTION)
-    param_tolerance, sorted_cubes, missing_games = sort_cubes_auto_param(bg_dict)
-    write_result(param_tolerance, sorted_cubes, missing_games, len(bg_dict.keys()))
+    with open("result.txt", "w") as f:
+        f.write("")
+    for k, v in bg_dict.items():
+        param_tolerance, sorted_cubes, missing_games = sort_cubes_auto_param(v)
+        write_result(param_tolerance, sorted_cubes, missing_games, len(bg_dict.keys()), "result.txt", k)
 
 main()
 
